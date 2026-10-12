@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import useEmblaCarousel from "embla-carousel-react";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import {
   ArrowLeft, Bug, Building2, ChevronDown, CircleCheck, Clock3,
   Droplets, HardHat, Heart, Leaf, Mail, MapPin, Menu, MessageCircle,
@@ -69,8 +71,19 @@ const testimonials = [
  { name: "خالد الشهري",    service: "أعمال التشطيب",     review: "تشطيب الشقة جاء بشكل رائع، الدقة في التنفيذ والتزامهم بالمواعيد جعل تجربتي معهم استثنائية." },
 ];
 
-function Brand() {
- return <a className="brand" href="#home" aria-label="شبكة التشييد — الرئيسية">
+function Brand({ onNav }: { onNav?: (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => void }) {
+ return <a
+  className="brand"
+  href="#home"
+  aria-label="شبكة التشييد — الرئيسية"
+  onClick={(e) => {
+   if (onNav) {
+    onNav(e, "#home");
+   } else if (typeof window !== "undefined") {
+    sessionStorage.setItem("tasheed_home_scroll_y", "0");
+   }
+  }}
+ >
   <img src="/logo/logo.webp" alt="شعار شبكة التشييد" className="brand-logo" width="180" height="auto" />
  </a>;
 }
@@ -84,6 +97,23 @@ function Index() {
  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
  const [openMobileDropdown, setOpenMobileDropdown] = useState<string | null>(null);
  const [emblaRef] = useEmblaCarousel({ loop: true, direction: "rtl", align: "start" });
+
+ function handleAnchorNav(e: React.MouseEvent<HTMLAnchorElement>, hash: string) {
+  e.preventDefault();
+  if (hash === "#home") {
+   sessionStorage.setItem("tasheed_home_scroll_y", "0");
+   window.scrollTo({ top: 0, behavior: "smooth" });
+   setActiveSection("#home");
+  } else {
+   const el = document.querySelector(hash);
+   if (el) {
+    el.scrollIntoView({ behavior: "smooth" });
+    setActiveSection(hash);
+   }
+  }
+  setMenuOpen(false);
+  setOpenMobileDropdown(null);
+ }
 
  useEffect(() => {
   const handleClickOutside = (e: MouseEvent) => {
@@ -100,6 +130,21 @@ function Index() {
   return () => document.removeEventListener("click", handleClickOutside);
  }, [menuOpen]);
 
+ useIsomorphicLayoutEffect(() => {
+  if (typeof window === "undefined") return;
+
+  sessionStorage.setItem("tasheed_from_internal", "true");
+
+  if (window.location.hash && window.location.hash !== "#home") return;
+
+  const saved = sessionStorage.getItem("tasheed_home_scroll_y");
+  if (!saved) return;
+  const targetY = parseInt(saved, 10);
+  if (isNaN(targetY) || targetY <= 0) return;
+
+  window.scrollTo(0, targetY);
+ }, []);
+
  useEffect(() => {
   const handleScroll = () => {
    setIsScrolled(window.scrollY > 50);
@@ -110,9 +155,15 @@ function Index() {
     if (rect.top <= 100) current = "#" + section.id;
    }
    setActiveSection(current);
+
+   sessionStorage.setItem("tasheed_home_scroll_y", window.scrollY.toString());
+   sessionStorage.setItem("tasheed_from_internal", "true");
   };
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  return () => {
+   window.removeEventListener("scroll", handleScroll);
+   sessionStorage.setItem("tasheed_home_scroll_y", window.scrollY.toString());
+  };
  }, []);
 
  function book(service = serviceNames[0] ?? "النظافة العامة") {
@@ -121,9 +172,15 @@ function Index() {
 
  return <>
   <header className={`site-header ${isScrolled ? "glass" : ""} ${menuOpen ? "menu-open" : ""}`}><div className="container nav-inner">
-   <Brand />
+   <Brand onNav={handleAnchorNav} />
    <nav className="desktop-nav" aria-label="القائمة الرئيسية">
-    <a className={activeSection === "#home" ? "active" : ""} href="#home">الرئيسية</a>
+    <a
+     className={activeSection === "#home" ? "active" : ""}
+     href="#home"
+     onClick={(e) => handleAnchorNav(e, "#home")}
+    >
+     الرئيسية
+    </a>
 
     {/* قائمة منسدلة: المقاولات والتشطيب */}
     <div
@@ -185,8 +242,8 @@ function Index() {
      </div>
     </div>
 
-    <a className={activeSection === "#about" ? "active" : ""} href="#about">من نحن</a>
-    <a className={activeSection === "#contact" ? "active" : ""} href="#contact">اتصل بنا</a>
+    <a className={activeSection === "#about" ? "active" : ""} href="#about" onClick={(e) => handleAnchorNav(e, "#about")}>من نحن</a>
+    <a className={activeSection === "#contact" ? "active" : ""} href="#contact" onClick={(e) => handleAnchorNav(e, "#contact")}>اتصل بنا</a>
    </nav>
    <div className="nav-actions">
     <Button
@@ -209,7 +266,7 @@ function Index() {
    <a
     className={activeSection === "#home" ? "active" : ""}
     href="#home"
-    onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+    onClick={(e) => handleAnchorNav(e, "#home")}
    >
     الرئيسية
    </a>
@@ -279,14 +336,14 @@ function Index() {
    <a
     className={activeSection === "#about" ? "active" : ""}
     href="#about"
-    onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+    onClick={(e) => handleAnchorNav(e, "#about")}
    >
     من نحن
    </a>
    <a
     className={activeSection === "#contact" ? "active" : ""}
     href="#contact"
-    onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+    onClick={(e) => handleAnchorNav(e, "#contact")}
    >
     اتصل بنا
    </a>

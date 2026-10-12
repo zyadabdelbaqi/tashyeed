@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Droplets, CircleCheck } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Droplets, CircleCheck } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";
 import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/back-link";
 import tankImage from "@/assets/water-tank.webp";
 
 export const Route = createFileRoute("/tanks")({
@@ -19,7 +20,7 @@ function TanksService() {
     <main className="service-page">
       <section className="service-hero pb-0">
         <div className="container">
-          <Link to="/" className="back-link"><ArrowRight size={16} /> العودة للرئيسية</Link>
+          <BackLink />
           <Reveal>
             <div className="row align-items-center g-5 mt-4">
               <div className="col-lg-6">

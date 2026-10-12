@@ -3,11 +3,14 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, type ReactNode } from "react";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 import appCss from "../styles.css?url";
 import { FloatingContact } from "../components/floating-contact";
@@ -92,6 +95,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+
+  useIsomorphicLayoutEffect(() => {
+    if (location.pathname !== "/") {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>

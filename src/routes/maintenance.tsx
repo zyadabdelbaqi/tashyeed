@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Wrench, CircleCheck } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Wrench, CircleCheck } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";
 import { Button } from "@/components/ui/button";
+import { BackLink } from "@/components/back-link";
 import maintenanceImage from "@/assets/maintenance.webp";
 
 export const Route = createFileRoute("/maintenance")({
@@ -19,7 +20,7 @@ function MaintenanceService() {
     <main className="service-page">
       <section className="service-hero pb-0">
         <div className="container">
-          <Link to="/" className="back-link"><ArrowRight size={16} /> العودة للرئيسية</Link>
+          <BackLink />
           <Reveal>
             <div className="row align-items-center g-5 mt-4">
               <div className="col-lg-6">
