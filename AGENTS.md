@@ -1,0 +1,3 @@
+- Keep the application on TanStack Start with semantic HTML and Bootstrap's RTL grid; this honors the requested responsive framework without replacing the router.
+- Define brand styling and interaction variants in src/styles.css; a single token-based stylesheet keeps the custom identity consistent.
+- Service requests are presentation-only until a real contact channel is supplied; never imply that a request has been delivered.
