@@ -82,17 +82,23 @@ function Index() {
  const [activeSection, setActiveSection] = useState("#home");
  const [isScrolled, setIsScrolled] = useState(false);
  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+ const [openMobileDropdown, setOpenMobileDropdown] = useState<string | null>(null);
  const [emblaRef] = useEmblaCarousel({ loop: true, direction: "rtl", align: "start" });
 
  useEffect(() => {
   const handleClickOutside = (e: MouseEvent) => {
-   if (!(e.target as HTMLElement).closest(".custom-nav-dropdown")) {
+   const target = e.target as HTMLElement;
+   if (!target.closest(".custom-nav-dropdown")) {
     setOpenDropdown(null);
+   }
+   if (menuOpen && !target.closest(".site-header")) {
+    setMenuOpen(false);
+    setOpenMobileDropdown(null);
    }
   };
   document.addEventListener("click", handleClickOutside);
   return () => document.removeEventListener("click", handleClickOutside);
- }, []);
+ }, [menuOpen]);
 
  useEffect(() => {
   const handleScroll = () => {
@@ -114,7 +120,7 @@ function Index() {
  }
 
  return <>
-  <header className={`site-header ${isScrolled ? "glass" : ""}`}><div className="container nav-inner">
+  <header className={`site-header ${isScrolled ? "glass" : ""} ${menuOpen ? "menu-open" : ""}`}><div className="container nav-inner">
    <Brand />
    <nav className="desktop-nav" aria-label="القائمة الرئيسية">
     <a className={activeSection === "#home" ? "active" : ""} href="#home">الرئيسية</a>
@@ -183,28 +189,55 @@ function Index() {
     <a className={activeSection === "#contact" ? "active" : ""} href="#contact">اتصل بنا</a>
    </nav>
    <div className="nav-actions">
-    <Button variant="ghost" size="icon" className="mobile-toggle" aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)}>
+    <Button
+     variant="ghost"
+     size="icon"
+     className="mobile-toggle"
+     aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
+     aria-expanded={menuOpen}
+     aria-controls="mobile-nav"
+     onClick={() => {
+      setMenuOpen(!menuOpen);
+      if (menuOpen) setOpenMobileDropdown(null);
+     }}
+    >
      {menuOpen ? <X /> : <Menu />}
     </Button>
    </div>
   </div>
   {menuOpen && <nav id="mobile-nav" className="mobile-nav" aria-label="قائمة الجوال">
-   <a className={activeSection === "#home" ? "active" : ""} href="#home" onClick={() => setMenuOpen(false)}>الرئيسية</a>
+   <a
+    className={activeSection === "#home" ? "active" : ""}
+    href="#home"
+    onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+   >
+    الرئيسية
+   </a>
 
    <div className="mobile-nav-group">
     <button
      type="button"
-     className="mobile-nav-toggle"
-     onClick={() => setOpenDropdown(openDropdown === "mobile-construction" ? null : "mobile-construction")}
+     className={`mobile-nav-toggle ${openMobileDropdown === "construction" ? "open" : ""}`}
+     onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpenMobileDropdown(openMobileDropdown === "construction" ? null : "construction");
+     }}
+     aria-expanded={openMobileDropdown === "construction"}
     >
      <span>المقاولات والتشطيب</span>
-     <ChevronDown size={16} className={`dropdown-chevron ${openDropdown === "mobile-construction" ? "rotate" : ""}`} />
+     <ChevronDown size={16} className={`dropdown-chevron ${openMobileDropdown === "construction" ? "rotate" : ""}`} />
     </button>
-    {openDropdown === "mobile-construction" && (
+    {openMobileDropdown === "construction" && (
      <div className="mobile-submenu">
       {constructionSubServices.map(svc => (
-       <Link key={svc.name} to={svc.href} onClick={() => { setMenuOpen(false); setOpenDropdown(null); }} className="mobile-submenu-item">
-        <svc.icon size={15} />
+       <Link
+        key={svc.name}
+        to={svc.href}
+        onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+        className="mobile-submenu-item"
+       >
+        <span className="mobile-submenu-icon"><svc.icon size={15} /></span>
         <span>{svc.name}</span>
        </Link>
       ))}
@@ -215,17 +248,27 @@ function Index() {
    <div className="mobile-nav-group">
     <button
      type="button"
-     className="mobile-nav-toggle"
-     onClick={() => setOpenDropdown(openDropdown === "mobile-cleaning" ? null : "mobile-cleaning")}
+     className={`mobile-nav-toggle ${openMobileDropdown === "cleaning" ? "open" : ""}`}
+     onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpenMobileDropdown(openMobileDropdown === "cleaning" ? null : "cleaning");
+     }}
+     aria-expanded={openMobileDropdown === "cleaning"}
     >
      <span>النظافة والخدمات المنزلية</span>
-     <ChevronDown size={16} className={`dropdown-chevron ${openDropdown === "mobile-cleaning" ? "rotate" : ""}`} />
+     <ChevronDown size={16} className={`dropdown-chevron ${openMobileDropdown === "cleaning" ? "rotate" : ""}`} />
     </button>
-    {openDropdown === "mobile-cleaning" && (
+    {openMobileDropdown === "cleaning" && (
      <div className="mobile-submenu">
       {cleaningSubServices.map(svc => (
-       <Link key={svc.name} to={svc.href} onClick={() => { setMenuOpen(false); setOpenDropdown(null); }} className="mobile-submenu-item">
-        <svc.icon size={15} />
+       <Link
+        key={svc.name}
+        to={svc.href}
+        onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+        className="mobile-submenu-item"
+       >
+        <span className="mobile-submenu-icon cleaning-icon"><svc.icon size={15} /></span>
         <span>{svc.name}</span>
        </Link>
       ))}
@@ -233,8 +276,20 @@ function Index() {
     )}
    </div>
 
-   <a className={activeSection === "#about" ? "active" : ""} href="#about" onClick={() => setMenuOpen(false)}>من نحن</a>
-   <a className={activeSection === "#contact" ? "active" : ""} href="#contact" onClick={() => setMenuOpen(false)}>اتصل بنا</a>
+   <a
+    className={activeSection === "#about" ? "active" : ""}
+    href="#about"
+    onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+   >
+    من نحن
+   </a>
+   <a
+    className={activeSection === "#contact" ? "active" : ""}
+    href="#contact"
+    onClick={() => { setMenuOpen(false); setOpenMobileDropdown(null); }}
+   >
+    اتصل بنا
+   </a>
   </nav>}
   </header>
 
